@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, request
 from community_pulse.app.models import db, Question
+from pydantic_core import ValidationError
 from sqlalchemy import select
+
+from community_pulse.app.schemas.schem_quest import QuestionCreate, QuestionResponse
 
 questions_bp = Blueprint('questions', __name__)
 
@@ -8,14 +11,7 @@ questions_bp = Blueprint('questions', __name__)
 @questions_bp.route('/', methods=['GET'])
 def get_questions():
     """Получение списка всех вопросов."""
-    print(request.args)
-    print(request.form)
-    print(request.data)
-    # print(request.get_json())
-    # print(request.json)
-    print(request.files)
-    print(request.method)
-    print(request.headers)
+
 
     # questions = Question.query.all()
 
@@ -23,23 +19,26 @@ def get_questions():
 
     # questions = db.session.execute(select(Question)).scalars().all()
 
-    questions_data = [{'id': q.id, 'text': q.text} for q in questions]
+    questions_data = [QuestionResponse.model_validate(q).model_dump() for q in questions]
 
-    return jsonify(questions_data)
+    return jsonify(questions_data), 200
 
 
 @questions_bp.route('/', methods=['POST'])
 def create_question():
     """Создание нового вопроса."""
-    data = request.get_json()
+    # data = request.get_json()
+    try:
+        # question_data = QuestionCreate(**data)
+        question_data = QuestionCreate.model_validate_json(request.data)
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
 
-    if not data or not data.get('text'):
-        return jsonify({'error': 'No question text provided'}), 400
-
-    question = Question(text=data['text'])
+    question = Question(text=question_data.text)
     db.session.add(question)
     db.session.commit()
-    return jsonify({'message': 'Вопрос создан', 'id': question.id}), 201
+
+    return jsonify(QuestionResponse(id=question.id, text=question.text).model_dump()), 201
 
 
 @questions_bp.route('/<int:id>', methods=['GET'])

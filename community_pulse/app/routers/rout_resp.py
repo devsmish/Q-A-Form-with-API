@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from community_pulse.app.models import db, Question, Statistic, Response
 
+
 responses_bp = Blueprint('response', __name__)
 
 
