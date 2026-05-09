@@ -34,7 +34,10 @@ def create_question():
     except ValidationError as e:
         return jsonify(e.errors()), 400
 
-    question = Question(text=question_data.text)
+    question = Question(
+        text=question_data.text,
+        category_id=question_data.category_id
+    )
     db.session.add(question)
     db.session.commit()
 
