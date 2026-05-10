@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
-from community_pulse.app.models import db, Question
+from community_pulse.app.models import db, Question, Category
 from pydantic_core import ValidationError
-from sqlalchemy import select
+# from sqlalchemy import select
 
-from community_pulse.app.schemas.schem_quest import QuestionCreate, QuestionResponse
+from community_pulse.app.schemas.schem_quest import QuestionCreate, QuestionResponse, CategoryBase
 
 questions_bp = Blueprint('questions', __name__)
 
@@ -59,18 +59,22 @@ def get_question(id):
 def update_question(id):
     """Обновление конкретного вопроса по его ID."""
 
-    question = db.session.query(Question).filter(Question.id == id).one_or_none()
-    if question is None:
-        return jsonify({'message': "Вопрос с таким ID не найден"}), 404
+    question = db.session.get(Question, id)
+    if not question:
+        return jsonify({'message': "Вопрос не найден"}), 404
 
     data = request.get_json()
 
-    if data and data.get('text'):
+    if 'text' in data:
         question.text = data['text']
-        db.session.commit()
-        return jsonify({'message': f"Вопрос обновлен: {question.text}"}), 200
 
-    return jsonify({'message': "Текст вопроса не предоставлен"}), 400
+    if 'category_id' in data:
+        if not db.session.get(Category, data['category_id']):
+            return jsonify({"message": "Указанная категория не существует"}), 400
+        question.category_id = data['category_id']
+
+    db.session.commit()
+    return jsonify(QuestionResponse.model_validate(question).model_dump()), 200
 
 
 @questions_bp.route('/<int:id>', methods=['DELETE'])
