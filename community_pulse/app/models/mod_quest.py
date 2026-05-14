@@ -8,7 +8,7 @@ class Question(db.Model):
     text = db.Column(db.String(255), nullable=False)
     responses = db.relationship('Response', backref='question', lazy=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    categories = db.relationship('Category', backref='question', lazy=True)
+    category = db.relationship('Category', backref='question', lazy=True)
 
     def __repr__(self):
         return f'Question: {self.text}'
