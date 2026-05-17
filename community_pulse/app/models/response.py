@@ -1,12 +1,16 @@
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from community_pulse.app.extensions import db
+from community_pulse.app.models.base import Model
+from community_pulse.app.models import Question
 
 
-class Response(db.Model):
-    __tablename__ = 'response'
+class Response(Model):
+    is_agree: Mapped[bool] = mapped_column(db.Boolean, nullable=False)
 
-    id = db.Column(db.Integer, primary_key=True)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
-    is_agree = db.Column(db.Boolean, nullable=False)  # True if agree, False if disagree
+    question_id: Mapped[int] = mapped_column(ForeignKey('question.id'), nullable=False)
+    # cycling import in typing (TYPE_CHECKING: True)
+    question: Mapped["Question"] = relationship("Question", back_populates="responses")
 
     def __repr__(self):
-        return f'Statistic for Question {self.question_id}: {self.agree_count} agree, {self.disagree_count} disagree'
+        return f'Response for Question {self.question_id}: {"Agree" if self.is_agree else "Disagree"}'

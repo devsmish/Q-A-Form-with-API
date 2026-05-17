@@ -1,36 +1,27 @@
+from typing import List
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from community_pulse.app.extensions import db
+from community_pulse.app.models import Response
+from community_pulse.app.models.base import Model
 
 
-class Question(db.Model):
-    __tablename__ = 'question'
+class Category(Model):
+    name: Mapped[str] = mapped_column(db.String(100), nullable=False)
 
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String(255), nullable=False)
-    responses = db.relationship('Response', backref='question', lazy=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    category = db.relationship('Category', backref='question', lazy=True)
-
-    def __repr__(self):
-        return f'Question: {self.text}'
-
-
-class Statistic(db.Model):
-    __tablename__ = 'statistic'
-
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), primary_key=True)
-    agree_count = db.Column(db.Integer, nullable=False, default=0)
-    disagree_count = db.Column(db.Integer, nullable=False, default=0)
-
-    def __repr__(self):
-        return '<Statistic for Question %r: %r agree, %r disagree>' % (self.question_id, self.agree_count,
-                                                                       self.disagree_count)
-
-
-class Category(db.Model):
-    __tablename__ = 'category'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=True)
+    questions: Mapped[List["Question"]] = relationship("Question", back_populates="category", lazy=True)
 
     def __repr__(self):
         return f'Category: {self.name}'
+
+
+class Question(Model):
+    text: Mapped[str] = mapped_column(db.String(255), nullable=False)
+
+    responses: Mapped[List["Response"]] = relationship("Response", back_populates="question", lazy=True)
+
+    category_id: Mapped[int] = mapped_column(ForeignKey('category.id'), nullable=False)
+    category: Mapped["Category"] = relationship("Category", back_populates="questions")
+
+    def __repr__(self):
+        return f'Question: {self.text}'
