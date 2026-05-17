@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-from pydantic import ValidationError
 from community_pulse.app.services.response_service import ResponseService
 from community_pulse.app.services.question_service import QuestionService
 from community_pulse.app.schemas.response_schema import ResponseCreate
@@ -9,7 +8,7 @@ responses_bp = Blueprint('response', __name__)
 
 @responses_bp.route('/', methods=['GET'])
 def get_responses():
-    """Получение статистики по всем существующим вопросам."""
+    """Получение динамической статистики по всем вопросам."""
     questions = QuestionService.get_all_questions()
     results = []
 
@@ -23,11 +22,8 @@ def get_responses():
 
 @responses_bp.route('/', methods=['POST'])
 def add_response():
-    """Добавление ответа на вопрос по ID"""
-    try:
-        schema_data = ResponseCreate.model_validate(request.get_json())
-    except ValidationError as e:
-        return jsonify(e.errors()), 400
+    # Валидация входного DTO ответа
+    schema_data = ResponseCreate.model_validate(request.get_json())
 
     response = ResponseService.add_response(schema_data)
     if not response:
