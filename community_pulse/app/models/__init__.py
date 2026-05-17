@@ -1,6 +1,6 @@
 from community_pulse.app.extensions import db
-from community_pulse.app.models.mod_resp import Response
-from community_pulse.app.models.mod_quest import Question, Statistic, Category
+from community_pulse.app.models.response import Response
+from community_pulse.app.models.question import Question, Category
 
 
-__all__ = ['Question', 'Statistic', 'Response', 'db', 'Category']
+__all__ = ['Question', 'Response', 'db', 'Category']
