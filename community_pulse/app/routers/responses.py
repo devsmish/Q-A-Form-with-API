@@ -1,55 +1,36 @@
 from flask import Blueprint, jsonify, request
-from community_pulse.app.models import db, Question, Statistic, Response
-
+from pydantic import ValidationError
+from community_pulse.app.services.response_service import ResponseService
+from community_pulse.app.services.question_service import QuestionService
+from community_pulse.app.schemas.response_schema import ResponseCreate
 
 responses_bp = Blueprint('response', __name__)
 
 
 @responses_bp.route('/', methods=['GET'])
 def get_responses():
-    """Получение статистики ответов."""
+    """Получение статистики по всем существующим вопросам."""
+    questions = QuestionService.get_all_questions()
+    results = []
 
-    statistics = Statistic.query.all()
-    results = [
-        {
-            "question_id": stat.question_id,
-            "agree_count": stat.agree_count,
-            "disagree_count": stat.disagree_count
-        }
-        for stat in statistics
-    ]
+    for q in questions:
+        stats = QuestionService.get_question_statistics(q.id)
+        if stats:
+            results.append(stats)
+
     return jsonify(results), 200
 
 
 @responses_bp.route('/', methods=['POST'])
 def add_response():
-    """Добавление нового ответа на вопрос."""
+    """Добавление ответа на вопрос по ID"""
+    try:
+        schema_data = ResponseCreate.model_validate(request.get_json())
+    except ValidationError as e:
+        return jsonify(e.errors()), 400
 
-    data = request.get_json()
-    if not data or not data.get('question_id') or 'is_agree' not in data:
-        return jsonify({'message': "Некорректные данные"}), 400
-
-    question = Question.query.get(data['question_id'])
-    if not question:
+    response = ResponseService.add_response(schema_data)
+    if not response:
         return jsonify({'message': "Вопрос не найден"}), 404
 
-    response = Response(
-        question_id=question.id,
-        is_agree=data['is_agree']
-    )
-
-    db.session.add(response)
-
-    statistic = Statistic.query.filter_by(question_id=question.id).first()
-    if not statistic:
-        statistic = Statistic(question_id=question.id, agree_count=0, disagree_count=0)
-        db.session.add(statistic)
-
-    if data['is_agree']:
-        statistic.agree_count += 1
-    else:
-        statistic.disagree_count += 1
-
-    db.session.commit()
-
-    return jsonify({'message': f"Ответ на вопрос {question.id} добавлен"}), 201
+    return jsonify({'message': f"Ответ на вопрос {schema_data.question_id} добавлен"}), 201
