@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from community_pulse.app.services.response_service import ResponseService
 from community_pulse.app.services.question_service import QuestionService
 from community_pulse.app.schemas.response_schema import ResponseCreate
@@ -17,7 +17,8 @@ def get_responses():
         if stats:
             results.append(stats)
 
-    return jsonify(results), 200
+    # Обычный список из dict-объектов. Flask 2.0+ собирает JSON из списков словарей
+    return results, 200
 
 
 @responses_bp.route('/', methods=['POST'])
@@ -27,6 +28,6 @@ def add_response():
 
     response = ResponseService.add_response(schema_data)
     if not response:
-        return jsonify({'message': "Вопрос не найден"}), 404
+        return {'message': "Вопрос не найден"}, 404
 
-    return jsonify({'message': f"Ответ на вопрос {schema_data.question_id} добавлен"}), 201
+    return {'message': f"Ответ на вопрос {schema_data.question_id} добавлен"}, 201

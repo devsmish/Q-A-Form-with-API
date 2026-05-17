@@ -6,12 +6,15 @@ from community_pulse.app.routers.responses import responses_bp
 from community_pulse.app.routers.categories import categories_bp
 from community_pulse.config import DevelopmentConfig
 from community_pulse.app.extensions import db, migrate
+from community_pulse.app.utils.response import PydanticResponse
 import community_pulse.app.models
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(DevelopmentConfig)
+
+    app.response_class = PydanticResponse
 
     app.register_blueprint(questions_bp, url_prefix='/questions')
     app.register_blueprint(responses_bp, url_prefix='/responses')
