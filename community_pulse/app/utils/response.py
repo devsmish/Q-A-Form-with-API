@@ -1,19 +1,17 @@
-from flask import Response, jsonify
+from flask.json.provider import DefaultJSONProvider
 from pydantic import BaseModel
 
+def pydantic_to_dict(obj):
+    """Рекурсивно превращает любые Pydantic-структуры в чистые dict/list."""
+    if isinstance(obj, BaseModel):
+        return obj.model_dump()
+    if isinstance(obj, list):
+        return [pydantic_to_dict(item) for item in obj]
+    if isinstance(obj, dict):
+        return {k: pydantic_to_dict(v) for k, v in obj.items()}
+    return obj
 
-class PydanticResponse(Response):
-    @classmethod
-    def force_type(cls, response, environ=None):
-        """Этот метод автоматически срабатывает во Flask, если роут
-        возвращает тип данных, который Flask изначально не поддерживает."""
-        # 1. Если роут вернул одну Pydantic модель
-        if isinstance(response, BaseModel):
-            return jsonify(response.model_dump())
-
-        # 2. Если роут вернул список Pydantic моделей
-        if isinstance(response, list) and all(isinstance(item, BaseModel) for item in response):
-            return jsonify([item.model_dump() for item in response])
-
-        # Во всех остальных случаях (строки, обычные словари) отдаем стандартному Flask
-        return super().get_response(response, environ)
+class PydanticJSONProvider(DefaultJSONProvider):
+    def dumps(self, obj, **kwargs):
+        clean_obj = pydantic_to_dict(obj)
+        return super().dumps(clean_obj, **kwargs)
