@@ -3,7 +3,7 @@ from community_pulse.app.models import db, Question, Category
 from pydantic_core import ValidationError
 # from sqlalchemy import select
 
-from community_pulse.app.schemas.schem_quest import QuestionCreate, QuestionResponse, CategoryBase
+from community_pulse.app.schemas.question_schema import QuestionCreate, QuestionResponse, CategoryBase
 
 questions_bp = Blueprint('questions', __name__)
 

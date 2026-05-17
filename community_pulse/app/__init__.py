@@ -1,7 +1,7 @@
 from flask import Flask
-from community_pulse.app.routers.rout_quest import questions_bp
-from community_pulse.app.routers.rout_resp import responses_bp
-from community_pulse.app.routers.rout_categ import categories_bp
+from community_pulse.app.routers.questions import questions_bp
+from community_pulse.app.routers.responses import responses_bp
+from community_pulse.app.routers.categories import categories_bp
 from community_pulse.config import DevelopmentConfig
 from community_pulse.app.extensions import db, migrate
 import community_pulse.app.models

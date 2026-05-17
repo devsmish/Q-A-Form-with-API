@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from community_pulse.app.models import db
-from community_pulse.app.models.mod_quest import Category
-from community_pulse.app.schemas.schem_quest import CategoryBase, CategoryCreate
+from community_pulse.app.models.question import Category
+from community_pulse.app.schemas.question_schema import CategoryBase, CategoryCreate
 from pydantic import ValidationError
 
 
