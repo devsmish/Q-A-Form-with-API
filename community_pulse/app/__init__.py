@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 from pydantic import ValidationError
 
 from community_pulse.app.routers.questions import questions_bp
@@ -7,7 +7,6 @@ from community_pulse.app.routers.categories import categories_bp
 from community_pulse.config import DevelopmentConfig
 from community_pulse.app.extensions import db, migrate
 from community_pulse.app.utils.response import PydanticResponse
-import community_pulse.app.models
 
 
 def create_app():
@@ -21,14 +20,17 @@ def create_app():
     app.register_blueprint(categories_bp, url_prefix='/categories')
 
     db.init_app(app)
+
+    import community_pulse.app.models
+
     migrate.init_app(app, db)
 
     # Глобальный обработчик ошибок валидации DTO
     @app.errorhandler(ValidationError)
     def handle_pydantic_validation_error(e: ValidationError):
-        return jsonify({
+        return {
             "error": "Validation Error",
-            "details": e.errors()  # Передает клиенту массив с точным описанием, где ошибка
-        }), 400
+            "details": e.errors(include_url=False, include_context=False)
+        }, 400
 
     return app

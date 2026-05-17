@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, TYPE_CHECKING  # Добавили TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from community_pulse.app.extensions import db
-from community_pulse.app.models import Response
 from community_pulse.app.models.base import Model
+
+if TYPE_CHECKING:
+    from community_pulse.app.models.response import Response
 
 
 class Category(Model):
